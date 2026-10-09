@@ -130,13 +130,13 @@ def get_users():
 # -----------------------------------
 # READ ONE USER
 # GET /users/{user_id}
+
 # -----------------------------------
 
 @app.get("/users/{user_id}")
 def get_user(user_id: int):
 
     users = load_users()
-
     for user in users:
 
         if user["id"] == user_id:
