@@ -1,88 +1,249 @@
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0864c0;
+  min-height: 100vh;
+  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg, #0864c0, #dbeafe);
+  color: #172033;
+}
+
+button,
+input {
+  font: inherit;
 }
 
 .container {
-  width: 90%;
-  max-width: 1000px;
-  margin: 50px auto;
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 92%;
+  max-width: 1100px;
+  margin: 40px auto;
 }
 
-h1 {
+.page-header {
   text-align: center;
+  color: white;
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 3px;
+}
+
+.page-header h1 {
+  margin: 10px 0;
+  font-size: clamp(28px, 5vw, 40px);
+}
+
+.subtitle {
+  margin: 0;
+  color: #eaf2ff;
+}
+
+.form-card,
+.users-card {
+  background: white;
+  padding: 28px;
+  border-radius: 14px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.form-card h2,
+.users-heading h2 {
+  margin-top: 0;
 }
 
 .user-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.user-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.user-form input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  outline: none;
+}
+
+.user-form input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.form-actions {
+  grid-column: 1 / -1;
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.user-form input {
-  flex: 1;
-  min-width: 200px;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
 button {
-  padding: 10px 15px;
+  padding: 11px 16px;
   border: none;
-  border-radius: 5px;
+  border-radius: 7px;
   cursor: pointer;
+  font-weight: 600;
+  transition: opacity 0.2s;
 }
 
-.user-form button {
+button:hover {
+  opacity: 0.88;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-actions button[type="submit"] {
   background: #2563eb;
   color: white;
 }
 
 .cancel-button {
-  background: #777 !important;
+  background: #64748b;
+  color: white;
 }
 
 .message {
-  padding: 12px;
+  position: relative;
+  padding: 14px 42px 14px 16px;
   margin-bottom: 20px;
-  background: #e8f5e9;
-  border-radius: 5px;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  overflow-wrap: anywhere;
+}
+
+.message-close {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  padding: 5px 10px;
+  background: transparent;
+  color: inherit;
+  font-size: 20px;
+}
+
+.users-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.users-heading h2 {
+  margin-bottom: 6px;
+}
+
+.users-heading p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.user-count {
+  padding: 8px 12px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
+  text-align: left;
 }
 
 th,
 td {
-  padding: 12px;
-  border: 1px solid #ddd;
-  text-align: center;
+  padding: 14px 12px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 th {
-  background: #eee;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 13px;
+}
+
+td {
+  overflow-wrap: anywhere;
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .edit-button {
   background: #f59e0b;
   color: white;
-  margin-right: 8px;
 }
 
 .delete-button {
   background: #dc2626;
   color: white;
+}
+
+.empty-state {
+  padding: 28px 12px;
+  text-align: center;
+  color: #64748b;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+@media (max-width: 650px) {
+  .container {
+    width: 94%;
+    margin: 22px auto;
+  }
+
+  .form-card,
+  .users-card {
+    padding: 18px;
+  }
+
+  .user-form {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    grid-column: auto;
+  }
+
+  .users-heading {
+    align-items: flex-start;
+  }
+
+  th,
+  td {
+    padding: 10px 8px;
+  }
 }

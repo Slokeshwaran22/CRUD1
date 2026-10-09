@@ -1,248 +1,144 @@
-from fastapi import FastAPI
+
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import json
-import os
+from pydantic import BaseModel, EmailStr
+import sqlite3
 
-
-# -----------------------------------
-# Create FastAPI application
-# -----------------------------------
-
-app = FastAPI()
-
-
-# -----------------------------------
-# CORS - Allow React frontend
-# -----------------------------------
+app = FastAPI(title="User CRUD API")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "http://localhost:5174",
         "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-# -----------------------------------
-# JSON file
-# -----------------------------------
-
-FILE_NAME = "user.json"
+DATABASE = "users.db"
 
 
-# -----------------------------------
-# Load users from user.json
-# -----------------------------------
-
-def load_users():
-
-    if not os.path.exists(FILE_NAME):
-        return []
-
-    try:
-        with open(FILE_NAME, "r") as file:
-            return json.load(file)
-
-    except json.JSONDecodeError:
-        return []
+def get_connection():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
-# -----------------------------------
-# Save users to user.json
-# -----------------------------------
+def initialize_database():
+    with get_connection() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                email TEXT NOT NULL UNIQUE
+            )
+        """)
 
-def save_users(users):
 
-    with open(FILE_NAME, "w") as file:
-        json.dump(users, file, indent=4)
+initialize_database()
 
 
-# -----------------------------------
-# HOME
-# -----------------------------------
+class UserCreate(BaseModel):
+    name: str
+    email: EmailStr
+
+
+def get_user_dict(row):
+    return dict(row)
+
 
 @app.get("/")
 def home():
+    return {"message": "User CRUD API is running"}
 
-    return {
-        "message": "FastAPI CRUD API is working"
-    }
-
-
-# -----------------------------------
-# CREATE USER
-# POST /users
-# -----------------------------------
-
-@app.post("/users")
-def create_user(user: dict):
-
-    users = load_users()
-
-    # Generate new ID
-    new_id = 1
-
-    if users:
-        new_id = max(
-            user_item["id"]
-            for user_item in users
-        ) + 1
-
-    # Create new user
-    new_user = {
-        "id": new_id,
-        "name": user["name"],
-        "email": user["email"],
-        "update_history": []
-    }
-
-    # Add user
-    users.append(new_user)
-
-    # Save to JSON
-    save_users(users)
-
-    return {
-        "message": "User created successfully",
-        "user": new_user
-    }
-
-
-# -----------------------------------
-# READ ALL USERS
-# GET /users
-# -----------------------------------
 
 @app.get("/users")
 def get_users():
-
-    users = load_users()
-
-    return users
-
-
-# -----------------------------------
-# READ ONE USER
-# GET /users/{user_id}
-
-# -----------------------------------
-
-@app.get("/users/{user_id}")
-def get_user(user_id: int):
-
-    users = load_users()
-    for user in users:
-
-        if user["id"] == user_id:
-
-            return user
-
-    return {
-        "message": "User not found"
-    }
+    with get_connection() as conn:
+        rows = conn.execute(
+            "SELECT * FROM users ORDER BY id DESC"
+        ).fetchall()
+    return [get_user_dict(row) for row in rows]
 
 
-# -----------------------------------
-# UPDATE USER
-# PUT /users/{user_id}
-# -----------------------------------
+@app.post("/users")
+def create_user(user: UserCreate):
+    name = user.name.strip()
+    email = str(user.email).strip()
+
+    if not name:
+        raise HTTPException(
+            status_code=400,
+            detail="Name is required"
+        )
+
+    try:
+        with get_connection() as conn:
+            cursor = conn.execute(
+                "INSERT INTO users (name, email) VALUES (?, ?)",
+                (name, email)
+            )
+            user_id = cursor.lastrowid
+
+        return {
+            "message": "User added successfully",
+            "id": user_id
+        }
+
+    except sqlite3.IntegrityError:
+        raise HTTPException(
+            status_code=409,
+            detail="Email already exists"
+        )
+
 
 @app.put("/users/{user_id}")
-def update_user(
-    user_id: int,
-    updated_user: dict
-):
+def update_user(user_id: int, user: UserCreate):
+    name = user.name.strip()
+    email = str(user.email).strip()
 
-    users = load_users()
+    if not name:
+        raise HTTPException(
+            status_code=400,
+            detail="Name is required"
+        )
 
-    for user in users:
+    try:
+        with get_connection() as conn:
+            cursor = conn.execute(
+                "UPDATE users SET name = ?, email = ? WHERE id = ?",
+                (name, email, user_id)
+            )
 
-        if user["id"] == user_id:
+            if cursor.rowcount == 0:
+                raise HTTPException(
+                    status_code=404,
+                    detail="User not found"
+                )
 
-            # -----------------------------------
-            # Create update_history if missing
-            # -----------------------------------
+        return {"message": "User updated successfully"}
 
-            if "update_history" not in user:
-                user["update_history"] = []
+    except sqlite3.IntegrityError:
+        raise HTTPException(
+            status_code=409,
+            detail="Email already exists"
+        )
 
-
-            # -----------------------------------
-            # Check NAME change
-            # -----------------------------------
-
-            if user["name"] != updated_user["name"]:
-
-                user["update_history"].append({
-                    "field": "name",
-                    "old_value": user["name"],
-                    "new_value": updated_user["name"]
-                })
-
-                user["name"] = updated_user["name"]
-
-
-            # -----------------------------------
-            # Check EMAIL change
-            # -----------------------------------
-
-            if user["email"] != updated_user["email"]:
-
-                user["update_history"].append({
-                    "field": "email",
-                    "old_value": user["email"],
-                    "new_value": updated_user["email"]
-                })
-
-                user["email"] = updated_user["email"]
-
-
-            # -----------------------------------
-            # Save changes
-            # -----------------------------------
-
-            save_users(users)
-
-            return {
-                "message": "User updated successfully",
-                "user": user
-            }
-
-
-    return {
-        "message": "User not found"
-    }
-
-
-# -----------------------------------
-# DELETE USER
-# DELETE /users/{user_id}
-# -----------------------------------
 
 @app.delete("/users/{user_id}")
 def delete_user(user_id: int):
+    with get_connection() as conn:
+        cursor = conn.execute(
+            "DELETE FROM users WHERE id = ?",
+            (user_id,)
+        )
 
-    users = load_users()
+        if cursor.rowcount == 0:
+            raise HTTPException(
+                status_code=404,
+                detail="User not found"
+            )
 
-    for user in users:
-
-        if user["id"] == user_id:
-
-            users.remove(user)
-
-            save_users(users)
-
-            return {
-                "message": "User deleted successfully"
-            }
-
-
-    return {
-        "message": "User not found"
-    }
+    return {"message": "User deleted successfully"}
