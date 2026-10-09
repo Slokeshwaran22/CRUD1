@@ -1,0 +1,88 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0864c0;
+}
+
+.container {
+  width: 90%;
+  max-width: 1000px;
+  margin: 50px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+}
+
+.user-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.user-form input {
+  flex: 1;
+  min-width: 200px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.user-form button {
+  background: #2563eb;
+  color: white;
+}
+
+.cancel-button {
+  background: #777 !important;
+}
+
+.message {
+  padding: 12px;
+  margin-bottom: 20px;
+  background: #e8f5e9;
+  border-radius: 5px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th,
+td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+th {
+  background: #eee;
+}
+
+.edit-button {
+  background: #f59e0b;
+  color: white;
+  margin-right: 8px;
+}
+
+.delete-button {
+  background: #dc2626;
+  color: white;
+}
